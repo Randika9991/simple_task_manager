@@ -1,15 +1,15 @@
 const express = require('express');
+const connectDB = require('./src/config/db');
+const taskRoutes = require('./src/routes/taskRoutes');
+
+connectDB();
 const app = express();
-const port = 3000;
 
 app.use(express.json());
 
-const connectDB = require('./src/config/db');
-connectDB();
+app.use('/api', taskRoutes);
 
-const routes = require('./src/routes');
-app.use('/', routes);
-
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
 });
