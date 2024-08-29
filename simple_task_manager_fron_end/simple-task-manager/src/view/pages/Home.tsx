@@ -9,7 +9,7 @@ interface Task {
 }
 
 interface HomeState {
-    data: Task[]; // Array of Task objects
+    data: Task[];
     title: string;
     description: string;
     task: string;
@@ -18,7 +18,7 @@ interface HomeState {
 
 export class Home extends Component<{}, HomeState> {
     state: HomeState = {
-        data: [], // Initialize state as an empty array
+        data: [],
         title: '',
         description: '',
         task: '',
@@ -26,7 +26,6 @@ export class Home extends Component<{}, HomeState> {
     };
 
     componentDidMount() {
-        // Fetching data from the API
         fetch('http://localhost:3000/api/tasks')
             .then(response => {
                 if (!response.ok) {
@@ -36,7 +35,7 @@ export class Home extends Component<{}, HomeState> {
             })
             .then(data => {
                 console.log('Data fetched successfully:', data);
-                this.setState({ data }); // Update the state with the fetched data
+                this.setState({ data });
             })
             .catch(error => {
                 console.error('Error fetching data:', error);
@@ -53,7 +52,6 @@ export class Home extends Component<{}, HomeState> {
     handleAddTask = () => {
         const { title, description, task, completed } = this.state;
 
-        // Validate input fields
         if (!title.trim() || !task.trim()) {
             alert('Title and Task are required.');
             return;
@@ -61,7 +59,6 @@ export class Home extends Component<{}, HomeState> {
 
         const newTask = { title, description, task, completed };
 
-        // Here you can make a POST request to add a new task
         fetch('http://localhost:3000/api/tasks', {
             method: 'POST',
             headers: {
@@ -85,10 +82,31 @@ export class Home extends Component<{}, HomeState> {
             });
     }
 
+    handleDeleteTask = (id: string) => {
+        fetch(`http://localhost:3000/api/tasks/${id}`, {
+            method: 'DELETE',
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(() => {
+                // Remove the deleted task from the state
+                this.setState(prevState => ({
+                    data: prevState.data.filter(task => task._id !== id),
+                }));
+                alert("good job!")
+            })
+            .catch(error => {
+                console.error('Error deleting task:', error);
+            });
+    }
 
     render() {
         const { data, title, description, task, completed } = this.state;
-        console.log('Rendered data:', data); // Log the data to be rendered
+        console.log('Rendered data:', data);
 
         return (
             <>
@@ -129,17 +147,7 @@ export class Home extends Component<{}, HomeState> {
                                     style={{ backgroundColor: '#616c7b', color: 'white' }}
                                 />
                             </div>
-                            <div className="m-2 p-4 border w-1/2">
-                                <label htmlFor="completed">Completed:</label>
-                                <input
-                                    id="completed"
-                                    type="checkbox"
-                                    className="border p-2 m-1"
-                                    checked={completed}
-                                    onChange={this.handleInputChange}
-                                    style={{ backgroundColor: '#616c7b', color: 'white' }}
-                                />
-                            </div>
+
                         </div>
                         <div className="flex justify-center w-full mb-4">
                             <button
@@ -157,11 +165,17 @@ export class Home extends Component<{}, HomeState> {
                                     <p>Title: {task.title}</p>
                                     <p>Description: {task.description}</p>
                                     <p>Task: {task.task}</p>
-                                    <p>Completed: {task.completed ? 'Yes' : 'No'}</p>
+                                    <button
+                                        onClick={() => this.handleDeleteTask(task._id)}
+                                        className="bg-green-500 text-white p-2 rounded mt-2"
+                                    >
+                                        Completed
+                                    </button>
+
                                 </div>
                             ))
                         ) : (
-                            <p>Loading...</p> // Display loading text while data is being fetched
+                            <p>Loading...</p>
                         )}
                     </div>
                 </div>
