@@ -1,123 +1,171 @@
 import React, { Component } from "react";
-import axios from 'axios'; // Import axios
 
-interface Product {
-    id: number;
-    name: string;
-    // Add other relevant fields as per your API response
+interface Task {
+    _id: string;
+    title: string;
+    description: string;
+    task: string;
+    completed: boolean;
 }
 
 interface HomeState {
+    data: Task[]; // Array of Task objects
+    title: string;
+    description: string;
     task: string;
-    tasks: string[];
-    data: Product[];
+    completed: boolean;
 }
 
 export class Home extends Component<{}, HomeState> {
-    private api: any;
-
-    constructor(props: {}) {
-        super(props);
-        this.state = {
-            task: "", // State to hold the input value
-            tasks: [], // State to hold the list of tasks
-            data: [], // State to hold API data
-        };
-        this.handleAddTask = this.handleAddTask.bind(this);
-        this.api = axios.create({
-            baseURL: 'http://localhost:4005'
-        });
-    }
-
-    handleAddTask() {
-        if (this.state.task.trim() !== "") {
-            this.setState((prevState) => ({
-                tasks: [...prevState.tasks, prevState.task], // Add the new task to the tasks array
-                task: "", // Clear the input
-            }));
-        }
-    }
+    state: HomeState = {
+        data: [], // Initialize state as an empty array
+        title: '',
+        description: '',
+        task: '',
+        completed: false,
+    };
 
     componentDidMount() {
-        this.fetchData();
+        // Fetching data from the API
+        fetch('http://localhost:3000/api/tasks')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Data fetched successfully:', data);
+                this.setState({ data }); // Update the state with the fetched data
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+            });
     }
 
-    fetchData = async () => {
-        try {
-            const response = await this.api.get('/products/All');
-            const jsonData: Product[] = response.data;
-            this.setState({ data: jsonData });
-            console.log({ data: jsonData });
-        } catch (error) {
-            console.log("error fetching data: " + error);
-        }
+    handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value, type, checked } = event.target;
+        this.setState({
+            [id]: type === 'checkbox' ? checked : value
+        } as any);
     }
+
+    handleAddTask = () => {
+        const { title, description, task, completed } = this.state;
+
+        // Validate input fields
+        if (!title.trim() || !task.trim()) {
+            alert('Title and Task are required.');
+            return;
+        }
+
+        const newTask = { title, description, task, completed };
+
+        // Here you can make a POST request to add a new task
+        fetch('http://localhost:3000/api/tasks', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(newTask),
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Task added:', data);
+                this.setState(prevState => ({
+                    data: [...prevState.data, data],
+                    title: '',
+                    description: '',
+                    task: '',
+                    completed: false,
+                }));
+            })
+            .catch(error => {
+                console.error('Error adding task:', error);
+            });
+    }
+
 
     render() {
-        const { data, task, tasks } = this.state;
+        const { data, title, description, task, completed } = this.state;
+        console.log('Rendered data:', data); // Log the data to be rendered
+
         return (
-            <div className="flex flex-col items-center bg-gray-600 p-4 min-h-screen">
-                <div className="w-full max-w-md rounded-lg p-6 bg-white shadow-md">
-                    <div className="mb-4">
-                        <label className="block text-gray-700 font-bold mb-2" htmlFor="task">
-                            Enter Task:
-                        </label>
-                        <input
-                            type="text"
-                            id="task"
-                            className="w-full border rounded p-2"
-                            placeholder="Enter your task here"
-                            value={task}
-                            onChange={(event) => this.setState({ task: event.target.value })}
-                        />
-                    </div>
-                    <div className="flex flex-wrap justify-center mb-4">
-                        {data.map((product) => (
-                            <div key={product.id} className="bg-gray-200 p-2 m-2 rounded">
-                                {product.name}
+            <>
+                <div className="flex flex-wrap justify-center" style={{ backgroundColor: '#233545', color: 'white' }}>
+                    <div className="flex flex-wrap w-full">
+                        <div className="flex w-full">
+                            <div className="m-2 p-4 border w-1/2">
+                                <label htmlFor="title">Title:</label>
+                                <input
+                                    id="title"
+                                    type="text"
+                                    className="border p-2 m-1 w-full"
+                                    value={title}
+                                    onChange={this.handleInputChange}
+                                    style={{ backgroundColor: '#616c7b', color: 'white' }}/>
                             </div>
-                        ))}
-                    </div>
-                    <div className="flex flex-wrap justify-center mb-4">
-                        {data.map((product) => (
-                            <div key={product.id} className="bg-gray-200 p-2 m-2 rounded">
-                                {product.id}
+                            <div className="m-2 p-4 border w-1/2">
+                                <label htmlFor="description">Description:</label>
+                                <input
+                                    id="description"
+                                    type="text"
+                                    className="border p-2 m-1 w-full"
+                                    value={description}
+                                    onChange={this.handleInputChange}
+                                    style={{ backgroundColor: '#616c7b', color: 'white' }}
+                                />
                             </div>
-                        ))}
+                        </div>
+                        <div className="flex w-full">
+                            <div className="m-2 p-4 border w-1/2">
+                                <label htmlFor="task">Task:</label>
+                                <input
+                                    id="task"
+                                    type="text"
+                                    className="border p-2 m-1 w-full"
+                                    value={task}
+                                    onChange={this.handleInputChange}
+                                    style={{ backgroundColor: '#616c7b', color: 'white' }}
+                                />
+                            </div>
+                            <div className="m-2 p-4 border w-1/2">
+                                <label htmlFor="completed">Completed:</label>
+                                <input
+                                    id="completed"
+                                    type="checkbox"
+                                    className="border p-2 m-1"
+                                    checked={completed}
+                                    onChange={this.handleInputChange}
+                                    style={{ backgroundColor: '#616c7b', color: 'white' }}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex justify-center w-full mb-4">
+                            <button
+                                onClick={this.handleAddTask}
+                                className="bg-blue-500 text-white p-2 rounded"
+                            >
+                                Add Task
+                            </button>
+                        </div>
                     </div>
-                    <div className="flex justify-between mb-4">
-                        <button
-                            className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700"
-                            onClick={this.handleAddTask}
-                        >
-                            Add Task
-                        </button>
-                        <button className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700">
-                            Delete Task
-                        </button>
-                        <button className="bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700">
-                            Delete All Tasks
-                        </button>
-                    </div>
-                    <div className="border border-gray-300 rounded h-40 overflow-y-scroll p-2">
-                        {/* Render the list of tasks */}
-                        <ul>
-                            {tasks.map((task, index) => (
-                                <li key={index} className="border-b py-1">
-                                    {task}
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="mt-4">
-                        <button className="w-full bg-green-600 text-white font-bold py-2 px-4 rounded hover:bg-green-700">
-                            Exit
-                        </button>
+                    <div className="flex flex-wrap justify-center">
+                        {data.length > 0 ? (
+                            data.map(task => (
+                                <div key={task._id} className="m-2 p-2 border">
+                                    <p>Title: {task.title}</p>
+                                    <p>Description: {task.description}</p>
+                                    <p>Task: {task.task}</p>
+                                    <p>Completed: {task.completed ? 'Yes' : 'No'}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p>Loading...</p> // Display loading text while data is being fetched
+                        )}
                     </div>
                 </div>
-            </div>
+            </>
         );
     }
 }
-
-export default Home;
