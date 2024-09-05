@@ -25,7 +25,7 @@ A simple task manager built using the MERN stack (MongoDB, Express, React, and N
 
 1. Clone the repository:
    ```
-   git clone https://github.com/username/repository-name.git
+   git clone https://github.com/Randika9991/simple_task_manager.git
    ```
 
 2. Navigate to the project directory:
@@ -64,7 +64,18 @@ A simple task manager built using the MERN stack (MongoDB, Express, React, and N
    cd client
    npm start
    ```
+   
+## Usage
 
+- Open your browser and go to `http://localhost:3000` to interact with the app.
+- Use the provided form to create, update, or delete tasks.
+
+## API Endpoints
+
+- `GET /api/tasks`: Retrieve all tasks.
+- `POST /api/tasks`: Create a new task.
+- `PUT /api/tasks/:id`: Update an existing task.
+- `DELETE /api/tasks/:id`: Delete a task.
 
 
 
